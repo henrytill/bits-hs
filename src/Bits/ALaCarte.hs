@@ -3,7 +3,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeOperators #-}
-{-# OPTIONS_GHC -Wall #-}
 
 -- |
 -- Module      : Bits.ALaCarte
