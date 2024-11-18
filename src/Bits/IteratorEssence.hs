@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -32,7 +33,7 @@ unfold f = In . bimap id (unfold f) . f
 data ListF a b
   = NilF
   | ConsF a b
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Functor)
 
 type List a = Fix ListF a
 
@@ -57,7 +58,7 @@ cons x y = In (ConsF x y)
 data TreeF a b
   = EmptyF
   | NodeF a b b
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Functor)
 
 type Tree a = Fix TreeF a
 
@@ -85,7 +86,7 @@ treeSum (NodeF x y z) = x + y + z
 data BTreeF a b
   = TipF a
   | BinF b b
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Functor)
 
 type BTree a = Fix BTreeF a
 
