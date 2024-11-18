@@ -17,8 +17,7 @@ common warnings
 
 library
     import:           warnings
-    exposed-modules:  Bits.AgdaLens
-                      Bits.ALaCarte
+    exposed-modules:  Bits.ALaCarte
                       Bits.ApplicativeExamples
                       Bits.AwkwardSquad
                       Bits.Bananas
