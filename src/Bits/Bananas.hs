@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+
 -- |
 -- Module      : Bits.Bananas
 -- Description : Functional Programming with Bananas, Lenses, Envelopes and Barbed Wire

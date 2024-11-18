@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-type-defaults #-}
+
 module Bits.AwkwardSquad where
 
 import Control.Concurrent (forkIO)
