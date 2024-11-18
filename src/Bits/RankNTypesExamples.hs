@@ -11,6 +11,7 @@
 -- <https://ocharles.org.uk/blog/guest-posts/2014-12-18-rank-n-types.html>
 module Bits.RankNTypesExamples where
 
+import Control.Monad (replicateM)
 import Control.Monad.State
 import Data.Char
 import Data.Kind (Type)
