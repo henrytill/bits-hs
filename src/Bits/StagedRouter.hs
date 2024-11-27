@@ -51,20 +51,20 @@ insertRoute (r, h) = go r h []
   where
     go :: Route -> CodeQ Handler -> [Text] -> RouteTree -> RouteTree
     -- For a static component, recurse into the static map
-    go (Static text rest) handler captures (RouteTreeNode statics wildcards defHandler) =
+    go (Static text rest) handler captures (RouteTreeNode statics wildcards defaultHandler) =
       RouteTreeNode
         (Map.alter (Just . insertIntoStatic) text statics)
         wildcards
-        defHandler
+        defaultHandler
       where
         insertIntoStatic Nothing = go rest handler captures defaultTree
         insertIntoStatic (Just tree) = go rest handler captures tree
     -- For a capture, recurse into the wildcard branch
-    go (Capture rest) handler captures (RouteTreeNode statics wildcards defHandler) =
+    go (Capture rest) handler captures (RouteTreeNode statics wildcards defaultHandler) =
       RouteTreeNode
         statics
         (Just $ maybe (go rest handler captures defaultTree) (go rest handler captures) wildcards)
-        defHandler
+        defaultHandler
     -- At the end of a route, install the handler
     go End handler _ (RouteTreeNode statics wildcards _) =
       RouteTreeNode
