@@ -24,7 +24,7 @@ type Handler = [Text] -> Response
 type Response = Text
 
 -- | Router containing route/handler pairs
-data Router = MkRouter [(Route, CodeQ Handler)]
+newtype Router = MkRouter [(Route, CodeQ Handler)]
 
 instance Semigroup Router where
   MkRouter a <> MkRouter b = MkRouter (a <> b)
@@ -44,7 +44,7 @@ data RouteTree
       (CodeQ Handler) -- possibly failing handler for current path
 
 defaultTree :: RouteTree
-defaultTree = RouteTreeNode Map.empty Nothing [||\_ -> "404"||]
+defaultTree = RouteTreeNode Map.empty Nothing [||const "404"||]
 
 insertRoute :: (Route, CodeQ Handler) -> RouteTree -> RouteTree
 insertRoute (r, h) = go r h []
@@ -85,24 +85,24 @@ routeViaTree (RouteTreeNode statics captures handler) req args =
   ||]
   where
     go :: [(Text, RouteTree)] -> Maybe RouteTree -> CodeQ Text -> CodeQ Request -> CodeQ Response
+    go [] Nothing _ _ = [||"404"||]
+    go [] (Just cs) x xs = routeViaTree cs xs [||$$x : $$args||]
     go ((y, tree) : st) _ x xs =
       [||
       if $$x == $$(liftTyped y)
         then $$(routeViaTree tree xs args)
         else $$(go st captures x xs)
       ||]
-    go [] Nothing _ _ = [||"404"||]
-    go [] (Just cs) x xs = routeViaTree cs xs [||$$x : $$args||]
 
 exampleRouter :: Router
 exampleRouter =
   mconcat
     [ at
         (Static "login" End)
-        [||\_ -> "Login page"||],
+        [||const "Login page"||],
       at
         (Static "language" End)
-        [||\_ -> "List of all languages"||],
+        [||const "List of all languages"||],
       at
         (Static "language" (Capture End))
         [||\(lid : _) -> "Details for language: " <> lid||],
