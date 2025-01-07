@@ -70,4 +70,5 @@ test-suite bits-test
     main-is:          Main.hs
     build-depends:
         base >=4.17 && <5,
+        QuickCheck >=2.14,
         bits

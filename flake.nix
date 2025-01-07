@@ -34,6 +34,10 @@
           inherit doCheck;
           doHaddock = false;
           testToolDepends = [ doctest ];
+          checkPhase = ''
+            ghc-pkg --package-db=$packageConfDir list
+            make PACKAGE_DB=$packageConfDir test
+          '';
         });
       overlay = final: prev: { bits = makeBits final.pkgs { }; };
     in
