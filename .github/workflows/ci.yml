@@ -28,7 +28,7 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
       - name: Install doctest
-        run: command -v doctest || pushd $HOME && cabal v2-install doctest && popd
+        run: command -v doctest || (pushd $HOME && cabal v2-install doctest && popd)
       - name: Build
         run: make
       - name: Test
