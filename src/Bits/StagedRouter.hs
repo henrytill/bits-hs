@@ -11,9 +11,12 @@ import Language.Haskell.TH.Syntax (liftTyped)
 
 -- | Route definition structure
 data Route
-  = Static Text Route -- Static path component
-  | Capture Route -- Variable capture
-  | End -- End of route
+  = -- | Static path component
+    Static Text Route
+  | -- | Variable capture
+    Capture Route
+  | -- | End of route
+    End
   deriving (Show)
 
 -- | Basic types for request handling
