@@ -7,7 +7,7 @@ chunks :: Int -> [a] -> [[a]]
 chunks n = unfoldr f
   where
     f [] = Nothing
-    f xs = Just (take n xs, drop n xs)
+    f xs = Just (splitAt n xs)
 
 -- | Quicksort (after Hudak)
 qs :: (Ord t) => [t] -> [t]
