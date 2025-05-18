@@ -29,8 +29,7 @@ primes = sieve [2 ..]
 -- https://stackoverflow.com/questions/52227157/how-is-assert-used
 assertionCanary :: IO Bool
 assertionCanary = do
-  assertionsWorking <- try $ assert False $ return ()
-  return $
-    case assertionsWorking of
-      Left (AssertionFailed _) -> True
-      _ -> False
+  assertionsWorking <- try . assert False . return $ ()
+  return $ case assertionsWorking of
+    Left (AssertionFailed _) -> True
+    _ -> False
