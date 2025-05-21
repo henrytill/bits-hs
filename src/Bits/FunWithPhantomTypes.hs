@@ -4,7 +4,7 @@
 {-# OPTIONS_GHC -Wno-deprecations #-}
 
 -- |
--- Module      : Bits.FunWithPhantomTypes
+-- Module : Bits.FunWithPhantomTypes
 -- Description : Examples adapted from "Fun with phantom types"
 --
 -- Code adapted from R. Hinze's
@@ -49,7 +49,9 @@ eval (Zero) = 0
 eval (Succ e) = eval e + 1
 eval (Pred e) = eval e - 1
 eval (IsZero e) = eval e == 0
-eval (If e1 e2 e3) = if eval e1 then eval e2 else eval e3
+eval (If e1 e2 e3)
+  | eval e1 = eval e2
+  | otherwise = eval e3
 
 -- * 2. Generic functions
 
@@ -90,12 +92,12 @@ dec2bin = unfoldr f
     f x = Just (x `mod` 2, x `div` 2)
 
 padding :: Int -> Int -> [Bit]
-padding p x =
-  let b = dec2bin x
-      len = length b
-   in if p <= len
-        then b
-        else b ++ take (p - len) (repeat 0)
+padding p x
+  | p <= len = b
+  | otherwise = b ++ take (p - len) (repeat 0)
+  where
+    b = dec2bin x
+    len = length b
 
 compressInt :: Int -> [Bit]
 compressInt = padding 32
