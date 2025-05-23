@@ -27,10 +27,10 @@
             name = "bits-src";
           };
           flags = "";
-          bits_ = call compiler "bits" src flags { };
+          bits = call compiler "bits" src flags { };
           doctest = pkgs.haskell.packages.${compiler}.doctest;
         in
-        pkgs.haskell.lib.overrideCabal bits_ (_: {
+        pkgs.haskell.lib.overrideCabal bits (_: {
           inherit doCheck;
           doHaddock = false;
           testToolDepends = [ doctest ];
