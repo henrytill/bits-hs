@@ -102,26 +102,26 @@ exampleRouter =
   mconcat
     [ at
         (Static "login" End)
-        [||const "Login page"||],
-      at
+        [||const "Login page"||]
+    , at
         (Static "language" End)
-        [||const "List of all languages"||],
-      at
+        [||const "List of all languages"||]
+    , at
         (Static "language" (Capture End))
-        [||\(lid : _) -> "Details for language: " <> lid||],
-      at
+        [||\(lid : _) -> "Details for language: " <> lid||]
+    , at
         (Static "language" (Capture (Static "new" End)))
-        [||\(lid : _) -> "New feature form for language: " <> lid||],
-      at
+        [||\(lid : _) -> "New feature form for language: " <> lid||]
+    , at
         (Static "language" (Capture (Static "feature" End)))
-        [||\(lid : _) -> "Features for language: " <> lid||],
-      at
+        [||\(lid : _) -> "Features for language: " <> lid||]
+    , at
         (Static "language" (Capture (Static "feature" (Capture End))))
-        [||\(lid : fid : _) -> "Feature " <> fid <> " for language: " <> lid||],
-      at
+        [||\(lid : fid : _) -> "Feature " <> fid <> " for language: " <> lid||]
+    , at
         (Static "language" (Capture (Static "feature" (Capture (Static "since" End)))))
-        [||\(lid : fid : _) -> "Version history for feature " <> fid <> " in language: " <> lid||],
-      at
+        [||\(lid : fid : _) -> "Version history for feature " <> fid <> " in language: " <> lid||]
+    , at
         (Static "login" (Capture End))
         [||\(name : _) -> "Login for: " <> name||]
     ]

@@ -16,15 +16,15 @@ main = do
   putStrLn "\nTesting routes:"
   mapM_
     testRoute
-    [ ["login"],
-      ["login", "bob"],
-      ["language"],
-      ["language", "haskell"],
-      ["language", "haskell", "new"],
-      ["language", "haskell", "feature"],
-      ["language", "haskell", "feature", "typed-th"],
-      ["language", "haskell", "feature", "typed-th", "since"],
-      ["invalid", "path"]
+    [ ["login"]
+    , ["login", "bob"]
+    , ["language"]
+    , ["language", "haskell"]
+    , ["language", "haskell", "new"]
+    , ["language", "haskell", "feature"]
+    , ["language", "haskell", "feature", "typed-th"]
+    , ["language", "haskell", "feature", "typed-th", "since"]
+    , ["invalid", "path"]
     ]
   where
     testRoute :: [Text] -> IO ()

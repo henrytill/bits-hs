@@ -73,8 +73,8 @@ someOtherInt si = si id + si id
 -- * Example: Random Numbers
 
 data Player = Player
-  { playerName :: String,
-    playerPos :: (Double, Double)
+  { playerName :: String
+  , playerPos :: (Double, Double)
   }
   deriving (Show)
 

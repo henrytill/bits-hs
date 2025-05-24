@@ -5,18 +5,18 @@
 -- <http://gallium.inria.fr/~huet/PUBLIC/zip.pdf Functional Pearls: The Zipper>, by Gerard Huet
 module Bits.Zipper
   ( -- * A tree...
-    Tree (..),
+    Tree (..)
 
     -- * ...and its Zipper
-    Path (..),
-    Location (..),
+  , Path (..)
+  , Location (..)
 
     -- * Navigation
-    goRight,
-    goLeft,
-    goDown,
-    goUp,
-    nthLoc,
+  , goRight
+  , goLeft
+  , goDown
+  , goUp
+  , nthLoc
   )
 where
 

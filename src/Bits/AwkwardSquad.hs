@@ -8,8 +8,8 @@ import Control.Monad (forever)
 import Prelude hiding (read)
 
 type Channel a =
-  ( MVar (Stream a), -- Read end
-    MVar (Stream a) -- Write end (the hole)
+  ( MVar (Stream a) -- Read end
+  , MVar (Stream a) -- Write end (the hole)
   )
 
 type Stream a = MVar (Item a)

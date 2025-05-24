@@ -16,16 +16,16 @@ module Bits.FirstLenses where
 -- * Motivation
 
 data Person = P
-  { _name :: String,
-    _addr :: Address,
-    _salary :: Int
+  { _name :: String
+  , _addr :: Address
+  , _salary :: Int
   }
   deriving (Show)
 
 data Address = A
-  { _road :: String,
-    _city :: String,
-    _postcode :: String
+  { _road :: String
+  , _city :: String
+  , _postcode :: String
   }
   deriving (Show)
 
@@ -95,8 +95,8 @@ type Lens' s a = Lens s s a a
 -- lensRToLens :: LensR s a -> Lens' s a
 -- @
 data LensR s a = L
-  { viewR :: s -> a,
-    setR :: a -> s -> s
+  { viewR :: s -> a
+  , setR :: a -> s -> s
   }
 
 newtype Identity a = Identity {runIdentity :: a}
