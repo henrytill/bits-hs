@@ -22,9 +22,9 @@ data Route
 -- | Basic types for request handling
 type Request = [Text]
 
-type Handler = [Text] -> Response
-
 type Response = Text
+
+type Handler = Request -> Response
 
 -- | Router containing route/handler pairs
 newtype Router = MkRouter [(Route, CodeQ Handler)]
