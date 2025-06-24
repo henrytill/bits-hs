@@ -21,7 +21,6 @@ library
                       Bits.ApplicativeExamples
                       Bits.AwkwardSquad
                       Bits.Bananas
-                      Bits.CoinductiveStreams
                       Bits.EpigramFunctorKit
                       Bits.FirstLenses
                       Bits.Fixed
