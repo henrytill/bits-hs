@@ -35,6 +35,7 @@ library
                       Bits.Polarity
                       Bits.RankNTypesExamples
                       Bits.Singletons
+                      Bits.Spreadsheet
                       Bits.StagedRouter
                       Bits.StagedRouterExample
                       Bits.Staging
@@ -62,7 +63,9 @@ library
 test-suite bits-test
     import:           warnings
     default-language: Haskell2010
-    -- other-modules:
+    other-modules:
+      Bits.SpreadsheetTest
+
     -- other-extensions:
     type:             exitcode-stdio-1.0
     hs-source-dirs:   test
