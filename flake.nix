@@ -17,7 +17,7 @@
       makeBits =
         pkgs:
         {
-          compiler ? "ghc964",
+          compiler ? "ghc967",
           doCheck ? true,
         }:
         let
