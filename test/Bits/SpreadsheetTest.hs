@@ -9,7 +9,7 @@ example :: Exp ()
 example = do
   x <- mkCell (return (10 :: Int))
   y <- mkCell (return (20 :: Int))
-  result <- mkCell (return (0 :: Int))
+  result <- mkCell (return undefined)
 
   set result ((+) <$> get x <*> get y)
 
