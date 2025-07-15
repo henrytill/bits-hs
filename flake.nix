@@ -14,32 +14,33 @@
       ...
     }:
     let
-      makeBits =
-        pkgs:
-        {
-          compiler ? "ghc967",
-          doCheck ? true,
-        }:
-        let
-          call = compiler: pkgs.haskell.packages.${compiler}.callCabal2nixWithOptions;
-          src = builtins.path {
-            path = ./.;
-            name = "bits-src";
+      ghcName = "ghc967";
+      overlay = final: prev: {
+        haskell = prev.haskell // {
+          packages = prev.haskell.packages // {
+            ${ghcName} = prev.haskell.packages.${ghcName}.override {
+              overrides = hfinal: hprev: {
+                bits =
+                  let
+                    src = builtins.path {
+                      path = ./.;
+                      name = "bits-src";
+                    };
+                    bits = hfinal.callCabal2nix "bits" src { };
+                  in
+                  final.haskell.lib.overrideCabal bits (_: {
+                    doHaddock = false;
+                    testToolDepends = [ hfinal.doctest ];
+                    checkPhase = ''
+                      ghc-pkg --package-db=$packageConfDir list
+                      make PACKAGE_DB=$packageConfDir test
+                    '';
+                  });
+              };
+            };
           };
-          flags = "";
-          bits = call compiler "bits" src flags { };
-          doctest = pkgs.haskell.packages.${compiler}.doctest;
-        in
-        pkgs.haskell.lib.overrideCabal bits (_: {
-          inherit doCheck;
-          doHaddock = false;
-          testToolDepends = [ doctest ];
-          checkPhase = ''
-            ghc-pkg --package-db=$packageConfDir list
-            make PACKAGE_DB=$packageConfDir test
-          '';
-        });
-      overlay = final: prev: { bits = makeBits final.pkgs { }; };
+        };
+      };
     in
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -50,7 +51,7 @@
         };
       in
       {
-        packages.bits = pkgs.bits;
+        packages.bits = pkgs.haskell.packages.${ghcName}.bits;
         packages.default = self.packages.${system}.bits;
       }
     );
