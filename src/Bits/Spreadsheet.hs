@@ -6,11 +6,11 @@
 {-# LANGUAGE NoFieldSelectors #-}
 
 module Bits.Spreadsheet
-  ( Cell
+  ( IdSupply
+  , mkIdSupply
   , Exp
   , runExp
-  , IdSupply
-  , mkIdSupply
+  , Cell
   , mkCell
   , get
   , set
@@ -22,21 +22,6 @@ import Control.Monad
 import Control.Monad.IO.Class
 import Data.IORef
 import qualified Data.List as List
-
--- | The type of cells containing a value of type 'a'
-data Cell a = Cell
-  { code :: IORef (Exp a)
-  , value :: IORef (Maybe a)
-  , reads :: IORef [ECell]
-  , observers :: IORef [ECell]
-  , id :: Int
-  }
-
-data ECell where
-  Pack :: Cell a -> ECell
-
-instance Eq ECell where
-  Pack a == Pack b = a.id == b.id
 
 -- | The ID supply
 newtype IdSupply = IdSupply (IORef Int)
@@ -75,6 +60,21 @@ instance Monad Exp where
     let Exp cmd' = f a
     (b, ds) <- cmd'
     return (b, List.union cs ds)
+
+-- | The type of cells containing a value of type 'a'
+data Cell a = Cell
+  { code :: IORef (Exp a)
+  , value :: IORef (Maybe a)
+  , reads :: IORef [ECell]
+  , observers :: IORef [ECell]
+  , id :: Int
+  }
+
+data ECell where
+  Pack :: Cell a -> ECell
+
+instance Eq ECell where
+  Pack a == Pack b = a.id == b.id
 
 -- | Creates a new cell (uses implicit environment)
 mkCell :: Exp a -> Exp (Cell a)
