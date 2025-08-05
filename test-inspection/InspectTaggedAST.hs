@@ -3,6 +3,7 @@
 {-# LANGUAGE UnboxedSums #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module InspectTaggedAST (main) where
 
@@ -150,12 +151,39 @@ evaluateU ast ref = case (# ast, ref #) of
 
 inspect $ 'evaluate === 'evaluateU
 
+evaluateDirect :: AST -> Ref -> Int
+evaluateDirect ast ref = case ref of
+  (LitRefU i) -> literal ast ! i
+  (NegRefU r) -> negate $ evaluateDirect ast (unary ast ! r)
+  (NotRefU r) -> complement $ evaluateDirect ast (unary ast ! r)
+  (AddRefU r) -> evaluateDirect ast (binary ast ! r) + evaluateDirect ast (binary ast ! (r + 1))
+  (XorRefU r) -> evaluateDirect ast (binary ast ! r) `xor` evaluateDirect ast (binary ast ! (r + 1))
+  _ -> invalidReference
+
+inspect $ 'evaluate === 'evaluateDirect
+
+evaluateManual :: AST -> Ref -> Int
+evaluateManual ast ref =
+  case (ref .&. 7) of
+    0 -> let i = ref `shiftR` 3 in literal ast ! i
+    1 -> let i = ref `shiftR` 3 in negate $ evaluateManual ast (unary ast ! i)
+    2 -> let i = ref `shiftR` 3 in complement $ evaluateManual ast (unary ast ! i)
+    3 -> let i = ref `shiftR` 3 in evaluateManual ast (binary ast ! i) + evaluateManual ast (binary ast ! (i + 1))
+    4 -> let i = ref `shiftR` 3 in evaluateManual ast (binary ast ! i) `xor` evaluateManual ast (binary ast ! (i + 1))
+    _ -> invalidReference
+
+inspect $ 'evaluate === 'evaluateManual
+
 main :: IO ()
 main = do
   let (ast, rootRef) = buildAST exampleExpression
   putStrLn $ "AST: " ++ prettyPrint ast rootRef
   putStrLn $ "Root ref: " ++ show rootRef
   let result = evaluate ast rootRef
-  putStrLn $ "Expression result: " ++ show result
   let resultU = evaluateU ast rootRef
+  let resultDirect = evaluateDirect ast rootRef
+  let resultManual = evaluateManual ast rootRef
+  putStrLn $ "Expression result: " ++ show result
   putStrLn $ "Expression result (unboxed): " ++ show resultU
+  putStrLn $ "Expression result (direct): " ++ show resultDirect
+  putStrLn $ "Expression result (manual): " ++ show resultManual
