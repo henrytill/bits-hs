@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE UnboxedSums #-}
 {-# LANGUAGE UnboxedTuples #-}
@@ -100,24 +101,24 @@ initialState = BuilderState 0 0 0 DList.empty DList.empty DList.empty
 type Builder = State BuilderState
 
 mkLiteral :: Int -> Builder Ref
-mkLiteral val = do
+mkLiteral i = do
   s <- get
   let idx = literalCount s
-  put s {literalCount = idx + 1, literalNodes = literalNodes s `DList.snoc` val}
+  put s {literalCount = idx + 1, literalNodes = literalNodes s `DList.snoc` i}
   return (LitRef idx)
 
 mkNegate :: Ref -> Builder Ref
-mkNegate val = do
+mkNegate r = do
   s <- get
   let idx = unaryCount s
-  put s {unaryCount = idx + 1, unaryNodes = unaryNodes s `DList.snoc` val}
+  put s {unaryCount = idx + 1, unaryNodes = unaryNodes s `DList.snoc` r}
   return (NegRef idx)
 
 mkNot :: Ref -> Builder Ref
-mkNot val = do
+mkNot r = do
   s <- get
   let idx = unaryCount s
-  put s {unaryCount = idx + 1, unaryNodes = unaryNodes s `DList.snoc` val}
+  put s {unaryCount = idx + 1, unaryNodes = unaryNodes s `DList.snoc` r}
   return (NotRef idx)
 
 mkAdd :: Ref -> Ref -> Builder Ref
@@ -135,21 +136,17 @@ mkXor lhs rhs = do
   return (XorRef idx)
 
 freezeAST :: BuilderState -> AST
-freezeAST s =
-  AST
-    { literal =
-        if literalCount s > 0
-          then listArray (0, literalCount s - 1) (DList.toList $ literalNodes s)
-          else listArray (0, 0) [0]
-    , unary =
-        if unaryCount s > 0
-          then listArray (0, unaryCount s - 1) (DList.toList $ unaryNodes s)
-          else listArray (0, 0) [0]
-    , binary =
-        if binaryCount s > 0
-          then listArray (0, binaryCount s - 1) (DList.toList $ binaryNodes s)
-          else listArray (0, 0) [0]
-    }
+freezeAST s = AST {literal, unary, binary}
+  where
+    literal
+      | literalCount s > 0 = listArray (0, literalCount s - 1) (DList.toList $ literalNodes s)
+      | otherwise = listArray (0, 0) [0]
+    unary
+      | unaryCount s > 0 = listArray (0, unaryCount s - 1) (DList.toList $ unaryNodes s)
+      | otherwise = listArray (0, 0) [0]
+    binary
+      | binaryCount s > 0 = listArray (0, binaryCount s - 1) (DList.toList $ binaryNodes s)
+      | otherwise = listArray (0, 0) [0]
 
 buildAST :: Builder Ref -> (# AST, Ref #)
 buildAST builder =
