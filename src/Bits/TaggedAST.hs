@@ -1,4 +1,6 @@
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE UnboxedSums #-}
+{-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE ViewPatterns #-}
 
 module Bits.TaggedAST where
@@ -11,31 +13,31 @@ import Data.Word (Word32)
 
 type Ref = Word32
 
-tagAndIndex :: Ref -> (Word32, Word32)
-tagAndIndex r = (r .&. 7, r `shiftR` 3)
+tagAndIndex :: Ref -> (# Word32, Word32 #)
+tagAndIndex r = (# r .&. 7, r `shiftR` 3 #)
 
 pattern LitRef :: Word32 -> Ref
-pattern LitRef i <- (tagAndIndex -> (0, i))
+pattern LitRef i <- (tagAndIndex -> (# 0, i #))
   where
     LitRef i = (i `shiftL` 3) .|. 0
 
 pattern NegRef :: Word32 -> Ref
-pattern NegRef i <- (tagAndIndex -> (1, i))
+pattern NegRef i <- (tagAndIndex -> (# 1, i #))
   where
     NegRef i = (i `shiftL` 3) .|. 1
 
 pattern NotRef :: Word32 -> Ref
-pattern NotRef i <- (tagAndIndex -> (2, i))
+pattern NotRef i <- (tagAndIndex -> (# 2, i #))
   where
     NotRef i = (i `shiftL` 3) .|. 2
 
 pattern AddRef :: Word32 -> Ref
-pattern AddRef i <- (tagAndIndex -> (3, i))
+pattern AddRef i <- (tagAndIndex -> (# 3, i #))
   where
     AddRef i = (i `shiftL` 3) .|. 3
 
 pattern XorRef :: Word32 -> Ref
-pattern XorRef i <- (tagAndIndex -> (4, i))
+pattern XorRef i <- (tagAndIndex -> (# 4, i #))
   where
     XorRef i = (i `shiftL` 3) .|. 4
 
@@ -52,38 +54,38 @@ data AST = AST
   }
   deriving (Show)
 
-viewLit :: (AST, Ref) -> Maybe Int
-viewLit (ast, LitRef i) = Just (literals ast ! i)
-viewLit _ = Nothing
+viewLit :: (# AST, Ref #) -> (# Int | () #)
+viewLit (# ast, LitRef i #) = (# literals ast ! i | #)
+viewLit _ = (# | () #)
 {-# INLINE viewLit #-}
 
-viewNeg :: (AST, Ref) -> Maybe Ref
-viewNeg (ast, NegRef i) = Just (negates ast ! i)
-viewNeg _ = Nothing
+viewNeg :: (# AST, Ref #) -> (# Ref | () #)
+viewNeg (# ast, NegRef i #) = (# negates ast ! i | #)
+viewNeg _ = (# | () #)
 {-# INLINE viewNeg #-}
 
-viewNot :: (AST, Ref) -> Maybe Ref
-viewNot (ast, NotRef i) = Just (nots ast ! i)
-viewNot _ = Nothing
+viewNot :: (# AST, Ref #) -> (# Ref | () #)
+viewNot (# ast, NotRef i #) = (# nots ast ! i | #)
+viewNot _ = (# | () #)
 {-# INLINE viewNot #-}
 
-viewAdd :: (AST, Ref) -> Maybe (Ref, Ref)
-viewAdd (ast, AddRef i) = Just (addLhs ast ! i, addRhs ast ! i)
-viewAdd _ = Nothing
+viewAdd :: (# AST, Ref #) -> (# (# Ref, Ref #) | () #)
+viewAdd (# ast, AddRef i #) = (# (# addLhs ast ! i, addRhs ast ! i #) | #)
+viewAdd _ = (# | () #)
 {-# INLINE viewAdd #-}
 
-viewXor :: (AST, Ref) -> Maybe (Ref, Ref)
-viewXor (ast, XorRef i) = Just (xorLhs ast ! i, xorRhs ast ! i)
-viewXor _ = Nothing
+viewXor :: (# AST, Ref #) -> (# (# Ref, Ref #) | () #)
+viewXor (# ast, XorRef i #) = (# (# xorLhs ast ! i, xorRhs ast ! i #) | #)
+viewXor _ = (# | () #)
 {-# INLINE viewXor #-}
 
 evaluate :: AST -> Ref -> Int
-evaluate ast ref = case (ast, ref) of
-  (viewLit -> Just literal) -> literal
-  (viewNeg -> Just operand) -> negate $ evaluate ast operand
-  (viewNot -> Just operand) -> complement $ evaluate ast operand
-  (viewAdd -> Just (l, r)) -> evaluate ast l + evaluate ast r
-  (viewXor -> Just (l, r)) -> evaluate ast l `xor` evaluate ast r
+evaluate ast ref = case (# ast, ref #) of
+  (viewLit -> (# literal | #)) -> literal
+  (viewNeg -> (# operand | #)) -> negate $ evaluate ast operand
+  (viewNot -> (# operand | #)) -> complement $ evaluate ast operand
+  (viewAdd -> (# (# l, r #) | #)) -> evaluate ast l + evaluate ast r
+  (viewXor -> (# (# l, r #) | #)) -> evaluate ast l `xor` evaluate ast r
   _ -> error "Invalid reference"
 
 data BuilderState = BuilderState
@@ -175,19 +177,19 @@ freezeAST s =
           else listArray (0, 0) [LitRef 0]
     }
 
-buildAST :: Builder Ref -> (AST, Ref)
+buildAST :: Builder Ref -> (# AST, Ref #)
 buildAST builder =
   let (rootRef, finalState) = runState builder initialState
       ast = freezeAST finalState
-   in (ast, rootRef)
+   in (# ast, rootRef #)
 
 prettyPrint :: AST -> Ref -> String
-prettyPrint ast ref = case (ast, ref) of
-  (viewLit -> Just literal) -> show literal
-  (viewNeg -> Just operand) -> "-(" ++ prettyPrint ast operand ++ ")"
-  (viewNot -> Just operand) -> "~(" ++ prettyPrint ast operand ++ ")"
-  (viewAdd -> Just (l, r)) -> "(" ++ prettyPrint ast l ++ " + " ++ prettyPrint ast r ++ ")"
-  (viewXor -> Just (l, r)) -> "(" ++ prettyPrint ast l ++ " ^ " ++ prettyPrint ast r ++ ")"
+prettyPrint ast ref = case (# ast, ref #) of
+  (viewLit -> (# literal | #)) -> show literal
+  (viewNeg -> (# operand | #)) -> "-(" ++ prettyPrint ast operand ++ ")"
+  (viewNot -> (# operand | #)) -> "~(" ++ prettyPrint ast operand ++ ")"
+  (viewAdd -> (# (# l, r #) | #)) -> "(" ++ prettyPrint ast l ++ " + " ++ prettyPrint ast r ++ ")"
+  (viewXor -> (# (# l, r #) | #)) -> "(" ++ prettyPrint ast l ++ " ^ " ++ prettyPrint ast r ++ ")"
   _ -> error "Invalid reference"
 
 exampleExpression :: Builder Ref
@@ -204,7 +206,7 @@ exampleExpression = do
 
 test :: IO ()
 test = do
-  let (ast, rootRef) = buildAST exampleExpression
+  let (# ast, rootRef #) = buildAST exampleExpression
   putStrLn $ "AST: " ++ prettyPrint ast rootRef
   let result = evaluate ast rootRef
   putStrLn $ "Expression result: " ++ show result
