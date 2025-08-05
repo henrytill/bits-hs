@@ -4,6 +4,10 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    inspection-testing-src = {
+      url = "github:nomeata/inspection-testing/0.6.2";
+      flake = false;
+    };
   };
 
   outputs =
@@ -11,6 +15,7 @@
       self,
       nixpkgs,
       flake-utils,
+      inspection-testing-src,
       ...
     }:
     let
@@ -36,6 +41,7 @@
                       make PACKAGE_DB=$packageConfDir test
                     '';
                   });
+                inspection-testing = hfinal.callCabal2nix "inspection-testing" inspection-testing-src { };
               };
             };
           };

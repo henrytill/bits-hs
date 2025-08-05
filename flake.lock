@@ -18,6 +18,23 @@
         "type": "github"
       }
     },
+    "inspection-testing-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1749804009,
+        "narHash": "sha256-6b2g/mH5NG6HGdmQJGwUWYfZo9/xJZd7EgoMi1utfCc=",
+        "owner": "nomeata",
+        "repo": "inspection-testing",
+        "rev": "fafb6cc06d5e69b4508372afddc95cf69bee9ce2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nomeata",
+        "ref": "0.6.2",
+        "repo": "inspection-testing",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1751949589,
@@ -37,6 +54,7 @@
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
+        "inspection-testing-src": "inspection-testing-src",
         "nixpkgs": "nixpkgs"
       }
     },

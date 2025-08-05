@@ -76,3 +76,16 @@ test-suite bits-test
         base >=4.17 && <5,
         QuickCheck >=2.14,
         bits
+
+test-suite bits-inspection
+    type:             exitcode-stdio-1.0
+    main-is:          InspectTaggedAST.hs
+    ghc-options:      -main-is InspectTaggedAST
+    hs-source-dirs:   test-inspection
+    default-language: Haskell2010
+    ghc-options:      -Wall
+    build-depends:
+        base >=4.17.2.1 && <4.19,
+        array ^>=0.5.4.0,
+        inspection-testing ^>=0.6.2,
+        bits
