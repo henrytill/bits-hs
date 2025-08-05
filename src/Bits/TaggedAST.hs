@@ -74,13 +74,15 @@ viewXor (ast, XorRef i) = Just (binary ast ! i, binary ast ! (i + 1))
 viewXor _ = Nothing
 
 evaluate :: AST -> Ref -> Int
-evaluate ast ref = case (ast, ref) of
-  (viewLit -> Just lit) -> lit
-  (viewNeg -> Just operand) -> negate $ evaluate ast operand
-  (viewNot -> Just operand) -> complement $ evaluate ast operand
-  (viewAdd -> Just (l, r)) -> evaluate ast l + evaluate ast r
-  (viewXor -> Just (l, r)) -> evaluate ast l `xor` evaluate ast r
-  _ -> error "Invalid reference"
+evaluate ast = go
+  where
+    go ref = case (ast, ref) of
+      (viewLit -> Just lit) -> lit
+      (viewNeg -> Just operand) -> negate $ go operand
+      (viewNot -> Just operand) -> complement $ go operand
+      (viewAdd -> Just (l, r)) -> go l + go r
+      (viewXor -> Just (l, r)) -> go l `xor` go r
+      _ -> error "Invalid reference"
 
 data BuilderState = BuilderState
   { literalCount :: !Word32

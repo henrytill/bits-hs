@@ -73,13 +73,15 @@ viewXor (ast, XorRef i) = Just (binary ast ! i, binary ast ! (i + 1))
 viewXor _ = Nothing
 
 evaluate :: AST -> Ref -> Int
-evaluate ast ref = case (ast, ref) of
-  (viewLit -> Just lit) -> lit
-  (viewNeg -> Just operand) -> negate $ evaluate ast operand
-  (viewNot -> Just operand) -> complement $ evaluate ast operand
-  (viewAdd -> Just (l, r)) -> evaluate ast l + evaluate ast r
-  (viewXor -> Just (l, r)) -> evaluate ast l `xor` evaluate ast r
-  _ -> invalidReference
+evaluate ast = go
+  where
+    go ref = case (ast, ref) of
+      (viewLit -> Just lit) -> lit
+      (viewNeg -> Just operand) -> negate $ go operand
+      (viewNot -> Just operand) -> complement $ go operand
+      (viewAdd -> Just (l, r)) -> go l + go r
+      (viewXor -> Just (l, r)) -> go l `xor` go r
+      _ -> invalidReference
 
 -- Unboxed
 
@@ -145,36 +147,40 @@ viewXorU _ = (# | () #)
 {-# INLINE viewXorU #-}
 
 evaluateU :: AST -> Ref -> Int
-evaluateU ast ref = case (# ast, ref #) of
-  (viewLitU -> (# lit | #)) -> lit
-  (viewNegU -> (# operand | #)) -> negate $ evaluateU ast operand
-  (viewNotU -> (# operand | #)) -> complement $ evaluateU ast operand
-  (viewAddU -> (# (# l, r #) | #)) -> evaluateU ast l + evaluateU ast r
-  (viewXorU -> (# (# l, r #) | #)) -> evaluateU ast l `xor` evaluateU ast r
-  _ -> invalidReference
+evaluateU ast = go
+  where
+    go ref = case (# ast, ref #) of
+      (viewLitU -> (# lit | #)) -> lit
+      (viewNegU -> (# operand | #)) -> negate $ go operand
+      (viewNotU -> (# operand | #)) -> complement $ go operand
+      (viewAddU -> (# (# l, r #) | #)) -> go l + go r
+      (viewXorU -> (# (# l, r #) | #)) -> go l `xor` go r
+      _ -> invalidReference
 
 inspect $ 'evaluate === 'evaluateU
 
 evaluateDirect :: AST -> Ref -> Int
-evaluateDirect ast ref = case ref of
-  (LitRefU i) -> literal ast ! i
-  (NegRefU r) -> negate $ evaluateDirect ast (unary ast ! r)
-  (NotRefU r) -> complement $ evaluateDirect ast (unary ast ! r)
-  (AddRefU r) -> evaluateDirect ast (binary ast ! r) + evaluateDirect ast (binary ast ! (r + 1))
-  (XorRefU r) -> evaluateDirect ast (binary ast ! r) `xor` evaluateDirect ast (binary ast ! (r + 1))
-  _ -> invalidReference
+evaluateDirect ast = go
+  where
+    go (LitRefU i) = literal ast ! i
+    go (NegRefU r) = negate $ go (unary ast ! r)
+    go (NotRefU r) = complement $ go (unary ast ! r)
+    go (AddRefU r) = go (binary ast ! r) + go (binary ast ! (r + 1))
+    go (XorRefU r) = go (binary ast ! r) `xor` go (binary ast ! (r + 1))
+    go _ = invalidReference
 
 inspect $ 'evaluate === 'evaluateDirect
 
 evaluateManual :: AST -> Ref -> Int
-evaluateManual ast ref =
-  case (ref .&. 7) of
-    0 -> let i = ref `shiftR` 3 in literal ast ! i
-    1 -> let i = ref `shiftR` 3 in negate $ evaluateManual ast (unary ast ! i)
-    2 -> let i = ref `shiftR` 3 in complement $ evaluateManual ast (unary ast ! i)
-    3 -> let i = ref `shiftR` 3 in evaluateManual ast (binary ast ! i) + evaluateManual ast (binary ast ! (i + 1))
-    4 -> let i = ref `shiftR` 3 in evaluateManual ast (binary ast ! i) `xor` evaluateManual ast (binary ast ! (i + 1))
-    _ -> invalidReference
+evaluateManual ast = go
+  where
+    go ref = case (ref .&. 7) of
+      0 -> let i = ref `shiftR` 3 in literal ast ! i
+      1 -> let i = ref `shiftR` 3 in negate $ go (unary ast ! i)
+      2 -> let i = ref `shiftR` 3 in complement $ go (unary ast ! i)
+      3 -> let i = ref `shiftR` 3 in go (binary ast ! i) + go (binary ast ! (i + 1))
+      4 -> let i = ref `shiftR` 3 in go (binary ast ! i) `xor` go (binary ast ! (i + 1))
+      _ -> invalidReference
 
 inspect $ 'evaluate === 'evaluateManual
 
