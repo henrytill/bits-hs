@@ -1,3 +1,4 @@
+{-# LANGUAGE BinaryLiterals #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ViewPatterns #-}
@@ -13,7 +14,7 @@ import Data.Word (Word32)
 type Ref = Word32
 
 tagAndIndex :: Ref -> (Word32, Word32)
-tagAndIndex r = (r .&. 7, r `shiftR` 3)
+tagAndIndex r = (r .&. 0b111, r `shiftR` 3)
 
 pattern LitRef :: Word32 -> Ref
 pattern LitRef i <- (tagAndIndex -> (0, i))
