@@ -6,9 +6,9 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
-module InspectTaggedAST (main) where
+module InspectFlatAST (main) where
 
-import Bits.TaggedAST (AST (..), Ref, buildAST, exampleExpression, prettyPrint)
+import Bits.FlatAST (AST (..), Ref, buildAST, exampleExpression, prettyPrint)
 import Data.Array.Unboxed ((!))
 import Data.Bits (complement, shiftL, shiftR, xor, (.&.), (.|.))
 import Data.Word (Word32)

@@ -3,7 +3,7 @@
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ViewPatterns #-}
 
-module Bits.TaggedAST where
+module Bits.FlatAST where
 
 import Control.Monad.State
 import Data.Array.Unboxed (UArray, listArray, (!))
