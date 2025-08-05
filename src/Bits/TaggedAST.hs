@@ -44,44 +44,40 @@ pattern XorRef i <- (tagAndIndex -> (# 4, i #))
 {-# COMPLETE LitRef, NegRef, NotRef, AddRef, XorRef #-}
 
 data AST = AST
-  { literals :: !(UArray Word32 Int)
-  , negates :: !(UArray Word32 Ref)
-  , nots :: !(UArray Word32 Ref)
-  , addLhs :: !(UArray Word32 Ref)
-  , addRhs :: !(UArray Word32 Ref)
-  , xorLhs :: !(UArray Word32 Ref)
-  , xorRhs :: !(UArray Word32 Ref)
+  { literal :: !(UArray Word32 Int)
+  , unary :: !(UArray Word32 Ref)
+  , binary :: !(UArray Word32 Ref)
   }
   deriving (Show)
 
 viewLit :: (# AST, Ref #) -> (# Int | () #)
-viewLit (# ast, LitRef i #) = (# literals ast ! i | #)
+viewLit (# ast, LitRef i #) = (# literal ast ! i | #)
 viewLit _ = (# | () #)
 {-# INLINE viewLit #-}
 
 viewNeg :: (# AST, Ref #) -> (# Ref | () #)
-viewNeg (# ast, NegRef i #) = (# negates ast ! i | #)
+viewNeg (# ast, NegRef i #) = (# unary ast ! i | #)
 viewNeg _ = (# | () #)
 {-# INLINE viewNeg #-}
 
 viewNot :: (# AST, Ref #) -> (# Ref | () #)
-viewNot (# ast, NotRef i #) = (# nots ast ! i | #)
+viewNot (# ast, NotRef i #) = (# unary ast ! i | #)
 viewNot _ = (# | () #)
 {-# INLINE viewNot #-}
 
 viewAdd :: (# AST, Ref #) -> (# (# Ref, Ref #) | () #)
-viewAdd (# ast, AddRef i #) = (# (# addLhs ast ! i, addRhs ast ! i #) | #)
+viewAdd (# ast, AddRef i #) = (# (# binary ast ! i, binary ast ! (i + 1) #) | #)
 viewAdd _ = (# | () #)
 {-# INLINE viewAdd #-}
 
 viewXor :: (# AST, Ref #) -> (# (# Ref, Ref #) | () #)
-viewXor (# ast, XorRef i #) = (# (# xorLhs ast ! i, xorRhs ast ! i #) | #)
+viewXor (# ast, XorRef i #) = (# (# binary ast ! i, binary ast ! (i + 1) #) | #)
 viewXor _ = (# | () #)
 {-# INLINE viewXor #-}
 
 evaluate :: AST -> Ref -> Int
 evaluate ast ref = case (# ast, ref #) of
-  (viewLit -> (# literal | #)) -> literal
+  (viewLit -> (# lit | #)) -> lit
   (viewNeg -> (# operand | #)) -> negate $ evaluate ast operand
   (viewNot -> (# operand | #)) -> complement $ evaluate ast operand
   (viewAdd -> (# (# l, r #) | #)) -> evaluate ast l + evaluate ast r
@@ -89,92 +85,70 @@ evaluate ast ref = case (# ast, ref #) of
   _ -> error "Invalid reference"
 
 data BuilderState = BuilderState
-  { litCount :: !Word32
-  , negCount :: !Word32
-  , notCount :: !Word32
-  , addCount :: !Word32
-  , xorCount :: !Word32
-  , litNodes :: !(DList Int)
-  , negNodes :: !(DList Ref)
-  , notNodes :: !(DList Ref)
-  , addLhsNodes :: !(DList Ref)
-  , addRhsNodes :: !(DList Ref)
-  , xorLhsNodes :: !(DList Ref)
-  , xorRhsNodes :: !(DList Ref)
+  { literalCount :: !Word32
+  , unaryCount :: !Word32
+  , binaryCount :: !Word32
+  , literalNodes :: !(DList Int)
+  , unaryNodes :: !(DList Ref)
+  , binaryNodes :: !(DList Ref)
   }
   deriving (Show)
 
 initialState :: BuilderState
-initialState = BuilderState 0 0 0 0 0 DList.empty DList.empty DList.empty DList.empty DList.empty DList.empty DList.empty
+initialState = BuilderState 0 0 0 DList.empty DList.empty DList.empty
 
 type Builder = State BuilderState
 
 mkLiteral :: Int -> Builder Ref
 mkLiteral val = do
   s <- get
-  let idx = litCount s
-  put s {litCount = idx + 1, litNodes = litNodes s `DList.snoc` val}
+  let idx = literalCount s
+  put s {literalCount = idx + 1, literalNodes = literalNodes s `DList.snoc` val}
   return (LitRef idx)
 
 mkNegate :: Ref -> Builder Ref
-mkNegate rhs = do
+mkNegate val = do
   s <- get
-  let idx = negCount s
-  put s {negCount = idx + 1, negNodes = negNodes s `DList.snoc` rhs}
+  let idx = unaryCount s
+  put s {unaryCount = idx + 1, unaryNodes = unaryNodes s `DList.snoc` val}
   return (NegRef idx)
 
 mkNot :: Ref -> Builder Ref
-mkNot rhs = do
+mkNot val = do
   s <- get
-  let idx = notCount s
-  put s {notCount = idx + 1, notNodes = notNodes s `DList.snoc` rhs}
+  let idx = unaryCount s
+  put s {unaryCount = idx + 1, unaryNodes = unaryNodes s `DList.snoc` val}
   return (NotRef idx)
 
 mkAdd :: Ref -> Ref -> Builder Ref
 mkAdd lhs rhs = do
   s <- get
-  let idx = addCount s
-  put s {addCount = idx + 1, addLhsNodes = addLhsNodes s `DList.snoc` lhs, addRhsNodes = addRhsNodes s `DList.snoc` rhs}
+  let idx = binaryCount s
+  put s {binaryCount = idx + 2, binaryNodes = binaryNodes s `DList.snoc` lhs `DList.snoc` rhs}
   return (AddRef idx)
 
 mkXor :: Ref -> Ref -> Builder Ref
 mkXor lhs rhs = do
   s <- get
-  let idx = xorCount s
-  put s {xorCount = idx + 1, xorLhsNodes = xorLhsNodes s `DList.snoc` lhs, xorRhsNodes = xorRhsNodes s `DList.snoc` rhs}
+  let idx = binaryCount s
+  put s {binaryCount = idx + 2, binaryNodes = binaryNodes s `DList.snoc` lhs `DList.snoc` rhs}
   return (XorRef idx)
 
 freezeAST :: BuilderState -> AST
 freezeAST s =
   AST
-    { literals =
-        if litCount s > 0
-          then listArray (0, litCount s - 1) (DList.toList $ litNodes s)
+    { literal =
+        if literalCount s > 0
+          then listArray (0, literalCount s - 1) (DList.toList $ literalNodes s)
           else listArray (0, 0) [0]
-    , negates =
-        if negCount s > 0
-          then listArray (0, negCount s - 1) (DList.toList $ negNodes s)
-          else listArray (0, 0) [LitRef 0]
-    , nots =
-        if notCount s > 0
-          then listArray (0, notCount s - 1) (DList.toList $ notNodes s)
-          else listArray (0, 0) [LitRef 0]
-    , addLhs =
-        if addCount s > 0
-          then listArray (0, addCount s - 1) (DList.toList $ addLhsNodes s)
-          else listArray (0, 0) [LitRef 0]
-    , addRhs =
-        if addCount s > 0
-          then listArray (0, addCount s - 1) (DList.toList $ addRhsNodes s)
-          else listArray (0, 0) [LitRef 0]
-    , xorLhs =
-        if xorCount s > 0
-          then listArray (0, xorCount s - 1) (DList.toList $ xorLhsNodes s)
-          else listArray (0, 0) [LitRef 0]
-    , xorRhs =
-        if xorCount s > 0
-          then listArray (0, xorCount s - 1) (DList.toList $ xorRhsNodes s)
-          else listArray (0, 0) [LitRef 0]
+    , unary =
+        if unaryCount s > 0
+          then listArray (0, unaryCount s - 1) (DList.toList $ unaryNodes s)
+          else listArray (0, 0) [0]
+    , binary =
+        if binaryCount s > 0
+          then listArray (0, binaryCount s - 1) (DList.toList $ binaryNodes s)
+          else listArray (0, 0) [0]
     }
 
 buildAST :: Builder Ref -> (# AST, Ref #)
@@ -185,7 +159,7 @@ buildAST builder =
 
 prettyPrint :: AST -> Ref -> String
 prettyPrint ast ref = case (# ast, ref #) of
-  (viewLit -> (# literal | #)) -> show literal
+  (viewLit -> (# lit | #)) -> show lit
   (viewNeg -> (# operand | #)) -> "-(" ++ prettyPrint ast operand ++ ")"
   (viewNot -> (# operand | #)) -> "~(" ++ prettyPrint ast operand ++ ")"
   (viewAdd -> (# (# l, r #) | #)) -> "(" ++ prettyPrint ast l ++ " + " ++ prettyPrint ast r ++ ")"
