@@ -22,30 +22,33 @@ invalidReference = error "Invalid reference"
 tagAndIndex :: Ref -> (Word32, Word32)
 tagAndIndex r = (r .&. 0b111, r `shiftR` 3)
 
+makeRef :: Word32 -> Word32 -> Ref
+makeRef tag i = (i `shiftL` 3) .|. tag
+
 pattern LitRef :: Word32 -> Ref
 pattern LitRef i <- (tagAndIndex -> (0, i))
   where
-    LitRef i = (i `shiftL` 3) .|. 0
+    LitRef i = makeRef 0 i
 
 pattern NegRef :: Word32 -> Ref
 pattern NegRef i <- (tagAndIndex -> (1, i))
   where
-    NegRef i = (i `shiftL` 3) .|. 1
+    NegRef i = makeRef 1 i
 
 pattern NotRef :: Word32 -> Ref
 pattern NotRef i <- (tagAndIndex -> (2, i))
   where
-    NotRef i = (i `shiftL` 3) .|. 2
+    NotRef i = makeRef 2 i
 
 pattern AddRef :: Word32 -> Ref
 pattern AddRef i <- (tagAndIndex -> (3, i))
   where
-    AddRef i = (i `shiftL` 3) .|. 3
+    AddRef i = makeRef 3 i
 
 pattern XorRef :: Word32 -> Ref
 pattern XorRef i <- (tagAndIndex -> (4, i))
   where
-    XorRef i = (i `shiftL` 3) .|. 4
+    XorRef i = makeRef 4 i
 
 {-# COMPLETE LitRef, NegRef, NotRef, AddRef, XorRef #-}
 
