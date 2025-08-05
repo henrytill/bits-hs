@@ -43,7 +43,7 @@
                   final.haskell.lib.overrideCabal bits (_: {
                     doHaddock = false;
                     testToolDepends = [ hfinal.doctest ];
-                    checkPhase = ''
+                    preHaddock = ''
                       ghc-pkg --package-db=$packageConfDir list
                       make PACKAGE_DB=$packageConfDir test
                     '';
