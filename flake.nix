@@ -66,6 +66,14 @@
       {
         packages.bits = pkgs.haskell.packages.${ghcName}.bits;
         packages.default = self.packages.${system}.bits;
+        packages.hoogle-server =
+          let
+            ghcEnv = pkgs.haskellPackages.ghcWithHoogle (ps: ps.bits.getBuildInputs.haskellBuildInputs);
+          in
+          pkgs.writeScriptBin "hoogle-server" ''
+            #!${pkgs.stdenv.shell}
+            ${ghcEnv}/bin/hoogle server --local -p ''${1:-8080}
+          '';
       }
     );
 }
