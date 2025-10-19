@@ -1,5 +1,6 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE ImplicitParams #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TupleSections #-}
@@ -22,6 +23,7 @@ import Control.Monad
 import Control.Monad.IO.Class
 import Data.IORef
 import qualified Data.List as List
+import Prelude hiding (id, reads)
 
 -- | The ID supply
 newtype IdSupply = IdSupply (IORef Int)
@@ -79,12 +81,12 @@ instance Eq ECell where
 -- | Creates a new cell (uses implicit environment)
 mkCell :: Exp a -> Exp (Cell a)
 mkCell e = Exp $ do
-  n <- idFromSupply ?idSupply
-  codeRef <- newIORef e
-  valueRef <- newIORef Nothing
-  readsRef <- newIORef []
-  observersRef <- newIORef []
-  let c = Cell codeRef valueRef readsRef observersRef n
+  code <- newIORef e
+  value <- newIORef Nothing
+  reads <- newIORef []
+  observers <- newIORef []
+  id <- idFromSupply ?idSupply
+  let c = Cell {code, value, reads, observers, id}
   return (c, [])
 
 -- | Reads a cell
