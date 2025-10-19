@@ -66,14 +66,16 @@
       {
         packages.bits = pkgs.haskell.packages.${ghcName}.bits;
         packages.default = self.packages.${system}.bits;
-        packages.hoogle-server =
-          let
-            ghcEnv = pkgs.haskellPackages.ghcWithHoogle (ps: ps.bits.getBuildInputs.haskellBuildInputs);
-          in
-          pkgs.writeScriptBin "hoogle-server" ''
-            #!${pkgs.stdenv.shell}
-            ${ghcEnv}/bin/hoogle server --local -p ''${1:-8080}
-          '';
+        devShells.default = pkgs.haskell.packages.${ghcName}.shellFor {
+          packages = hpkgs: [ hpkgs.bits ];
+          withHoogle = true;
+          nativeBuildInputs = with pkgs; [
+            cabal-install
+            haskell.packages.${ghcName}.fourmolu
+            haskell.packages.${ghcName}.ghc-tags
+            haskell.packages.${ghcName}.hlint
+          ];
+        };
       }
     );
 }
