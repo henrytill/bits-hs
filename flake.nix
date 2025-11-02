@@ -34,11 +34,7 @@
               overrides = hfinal: hprev: {
                 bits =
                   let
-                    src = builtins.path {
-                      path = ./.;
-                      name = "bits-src";
-                    };
-                    bits = hfinal.callCabal2nix "bits" src { };
+                    bits = hfinal.callCabal2nix "bits" self { };
                   in
                   final.haskell.lib.overrideCabal bits (_: {
                     doHaddock = false;
